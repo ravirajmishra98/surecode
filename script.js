@@ -1,26 +1,14 @@
-document.getElementById('contact-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
-    
-    if (name && email && message) {
-        alert(`Thank you, ${name}! Your message has been sent. We'll get back to you at ${email} soon.`);
-        // In a real application, you would send this data to a server
-        this.reset();
-    } else {
-        alert('Please fill in all fields.');
-    }
-});
-
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-        });
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
     });
 });
 
@@ -45,13 +33,14 @@ backToTopButton.addEventListener('click', () => {
 // Intersection Observer for fade-in animations
 const observerOptions = {
     threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
+    rootMargin: '0px 0px -100px 0px'
 };
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             entry.target.classList.add('animate');
+            observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
@@ -60,24 +49,36 @@ document.querySelectorAll('.fade-in').forEach(section => {
     observer.observe(section);
 });
 
-// Typing effect for hero text (already handled by CSS, but can add more JS if needed)
+// Dynamic number counter animation
+function animateCounter(element) {
+    const target = parseInt(element.textContent);
+    let current = 0;
+    const increment = target / 60;
+    
+    const counter = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = target + (element.textContent.includes('+') ? '+' : '');
+            clearInterval(counter);
+        } else {
+            element.textContent = Math.floor(current) + (element.textContent.includes('+') ? '+' : '');
+        }
+    }, 16);
+}
 
-// Add some dynamic content loading simulation
+// Trigger counter animation when stats section is visible
 window.addEventListener('load', () => {
-    // Simulate loading stats
     const statNumbers = document.querySelectorAll('.stat-item h3');
-    statNumbers.forEach(stat => {
-        const target = parseInt(stat.textContent);
-        let current = 0;
-        const increment = target / 100;
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                stat.textContent = target + (stat.textContent.includes('+') ? '+' : '');
-                clearInterval(timer);
-            } else {
-                stat.textContent = Math.floor(current) + (stat.textContent.includes('+') ? '+' : '');
+    let countersStarted = false;
+    
+    window.addEventListener('scroll', () => {
+        const statsSection = document.getElementById('stats');
+        if (statsSection && !countersStarted) {
+            const sectionPosition = statsSection.getBoundingClientRect().top;
+            if (sectionPosition < window.innerHeight) {
+                statNumbers.forEach(stat => animateCounter(stat));
+                countersStarted = true;
             }
-        }, 20);
+        }
     });
 });
